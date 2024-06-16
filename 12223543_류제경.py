@@ -64,18 +64,20 @@ def BC(cluster):
 
     return pd.Series(borda_scores, index=cluster.columns).nlargest(10)
 
+# 만약 너무 오래걸리면 이부분은 주석처리해주세요, 제 컴퓨터에선 1시간 정도 걸렸습니다.
 def CR(cluster):
-    item_wins = np.zeros(cluster.shape[1])
-    item_losses = np.zeros(cluster.shape[1])
+    item_scores = np.zeros(cluster.shape[1])
     for i in range(cluster.shape[1]):
         for j in range(cluster.shape[1]):
             if i != j:
-                wins = (cluster.iloc[:, i] > cluster.iloc[:, j]).sum()
-                losses = (cluster.iloc[:, i] < cluster.iloc[:, j]).sum()
-                item_wins[i] += wins
-                item_losses[i] += losses
-    copeland_scores = item_wins - item_losses
-    return pd.Series(copeland_scores, index=cluster.columns).nlargest(10)
+                i_wins = (cluster.iloc[:, i] > cluster.iloc[:, j]).sum()
+                j_wins = (cluster.iloc[:, j] > cluster.iloc[:, i]).sum()
+                if i_wins > j_wins:
+                    item_scores[i] += 1
+                elif i_wins < j_wins:
+                    item_scores[i] -= 1
+    return pd.Series(item_scores, index=cluster.columns).nlargest(10)
+
 
 # 클러스터별로 진행 3*6행렬 만들기 !
 clusters = [cluster_0, cluster_1, cluster_2]
